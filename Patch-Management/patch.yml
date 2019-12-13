@@ -1,0 +1,28 @@
+---
+  - name: This Playbook will update the packages
+    hosts: test
+    vars_prompt:
+       - name: input
+         prompt: "\nDo you want to upgrade package yes or no\n"
+         private: no
+
+       - name: package
+         prompt: "\nPlease enter the package name which you want to upgrade {hit enter to skip this step annd procced to upgrade security patches}"
+         private: no
+
+       - name: security
+         prompt: "\nDo you want to update only security patches  yes or no"
+         private: no
+
+    tasks:
+    - name: Package upgrade
+      yum: 
+         name: "{{package}}"
+         state: latest
+      when: input | bool
+
+
+    - name: update security patches
+      yum: 
+         command: yum --security update
+      when: security | bool
