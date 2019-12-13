@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  become: true
+  vars: 
+    access_key: your access key
+    secret_key: your secret key
+  
+  tasks:     
+   - name: Create an S3 bucket
+     s3_bucket:
+      name: mybucketmayur
+      region: ap-south-1
+      aws_access_key: "{{access_key}}"
+      aws_secret_key: "{{secret_key}}"
+      permission: public-read
