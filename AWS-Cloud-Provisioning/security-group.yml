@@ -1,0 +1,19 @@
+---
+ - name: Create SG
+   hosts: localhost
+   tasks:
+   - name: This will create security group using ansible
+     ec2_group:
+       aws_access_key: your access key
+       aws_secret_key: your secret key
+       name: Mayur
+       description: custom rules in Security Group
+       vpc_id: vpc-aa8319c2
+       region: ap-south-1
+       rules:
+        - proto: tcp
+          ports:
+          - 80
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 80
+ 
