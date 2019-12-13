@@ -1,0 +1,38 @@
+---
+- hosts: test
+  become: yes
+  remote_user: root
+  tasks:
+    - name: Download Tomcat using get_url
+      get_url:
+         url: http://mirrors.estointernet.in/apache/tomcat/tomcat-9/v9.0.27/bin/apache-tomcat-9.0.27.tar.gz
+         dest: /opt/
+         mode: 0755
+
+    - name: extract downloaded tomcat package
+      unarchive:
+         src: /opt/apache-tomcat-9.0.27.tar.gz
+         dest: /opt/
+         remote_src: yes
+
+    - name: Rename the folder
+      command: mv /opt/apache-tomcat-9.0.27 /opt/tomcat9
+
+
+    - name: add group "tomcat"
+      group: name=tomcat
+
+    - name: Set permission on directory /opt/tomcat/
+      file:
+         path: /opt/tomcat9
+         mode: '0755'
+         owner: tomcat
+         group: tomcat
+
+    - name: add user "tomcat"
+      user: name=tomcat group=tomcat home=/opt/tomcat9 createhome=no
+      become: True
+      become_method: sudo 
+      
+     - name: Restart Tomcat Service
+      shell: sh /opt/tomcat9/bin/startup.sh
