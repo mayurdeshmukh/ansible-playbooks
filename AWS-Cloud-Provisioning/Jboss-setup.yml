@@ -1,0 +1,130 @@
+---
+- name: This playbook will install Wildfly 16 (JBoss Server)
+  hosts: aws
+  become: yes
+  remote_user: ec2-user
+  become_method: sudo
+  tasks:
+        - name: Install packages
+          yum: 
+            name: java-1.8.0-openjdk-devel
+
+        - name: Download JBoss package
+          get_url:
+              url: https://download.jboss.org/wildfly/16.0.0.Final/wildfly-16.0.0.Final.tar.gz
+              dest: /opt
+              mode: '0755'
+        
+        - name: Extract downloaded Jboss package
+          unarchive:
+              src: /opt/wildfly-16.0.0.Final.tar.gz
+              dest: /opt/
+              remote_src: yes
+       
+        - name: Rename the folder
+          command: mv /opt/wildfly-16.0.0.Final /opt/wildfly
+                
+        - name: Add group wildfly
+          group: name=wildfly
+        
+        - name: Add user wildfly
+          user: 
+              name: wildfly
+              shell: /sbin/nologin
+              state: present
+              createhome: yes 
+              home: /opt/wildfly
+                  
+        - name: Set permissions on directory
+          file:
+              path: /opt/wildfly
+              state: directory
+              group: wildfly
+              owner: wildfly
+              recurse: yes
+
+        - name: create directory
+          file:
+             path: /etc/wildfly
+             state: directory
+          tags: etc
+
+        - name: Copy config file from template to /etc/wildfly 
+          command: cp /opt/wildfly/docs/contrib/scripts/systemd/wildfly.conf /etc/wildfly/
+
+        - name: Copy the launch.sh script in /opt/wildfly/bin directory.
+          command: cp /opt/wildfly/docs/contrib/scripts/systemd/launch.sh /opt/wildfly/bin/
+
+        - name: Copy WildFly service unit in Systemd configuration directory.
+          command: cp /opt/wildfly/docs/contrib/scripts/systemd/wildfly.service /etc/systemd/system/
+
+        - name: Access the console from remote locations
+          lineinfile:
+            path: /etc/wildfly/wildfly.conf
+            line: WILDFLY_CONSOLE_BIND=0.0.0.0
+       
+        - name: Change domain parameter in launch.sh script
+          shell: sed -i '/domain.sh/c\$WILDFLY_HOME/bin/domain.sh\ \-c\ \$2\ \-b\ \$3\ \-bmanagement\ \$4' /opt/wildfly/bin/launch.sh
+        
+        - name: Change standalone parameter in launch.sh script
+          shell: sed -i '/standalone.sh/c\$WILDFLY_HOME/bin/standalone.sh\ \-c\ \$2\ \-b\ \$3\ \-bmanagement\ \$4' /opt/wildfly/bin/launch.sh
+          
+        - name: Replace line in wildfly.service
+          lineinfile:
+            path: /etc/systemd/system/wildfly.service
+            regexp: '^ExecStart='
+            line: ExecStart=/opt/wildfly/bin/launch.sh $WILDFLY_MODE $WILDFLY_CONFIG $WILDFLY_BIND $WILDFLY_CONSOLE_BIND
+
+        - name: Create the /var/run/wildfly directory
+          file:
+             path: /var/run/wildfly/
+             state: directory
+             owner: wildfly
+             mode: '0755'
+       
+        - name: Reload the daemon
+          command: systemctl daemon-reload
+       
+        - name: Restart Service
+          service:
+            name: wildfly
+            state: restarted
+            enabled: true
+
+--------- This module for configuration of aws cli on newly created ec2 instance --------------
+    
+        - name: create hidden directory .aws
+          shell: mkdir /home/ec2-user/.aws
+
+        - name: create file for credentials
+          shell: touch /home/ec2-user/.aws/credentials
+       
+        - name: insert aws secret & access keys
+          blockinfile:
+            path: /home/ec2-user/.aws/credentials
+            block: |
+                     [default]
+                     aws_access_key_id = access_key
+                     aws_secret_access_key = secret_key
+          tags: aws
+     
+        - name: Installation of PIP on the node
+          yum:
+            name: python-pip
+            state: latest
+
+        - name: install boto on the remote node
+          shell: pip install boto botocore boto3 
+          
+# Copy artifact from s3 to ec2 instance
+        - name: Download artifact from s3 and deploy on jboss
+          become: yes
+          become_user: ec2-user 
+          shell: aws s3 cp s3://mybucketjbosstest/sample.war /home/ec2-user
+          tags: wild
+
+        - name: move downloaded artifacts into /opt/...
+          shell: mv /home/ec2-user/sample.war /opt/wildfly/standalone/deployments
+          tags: moveme
+
+
