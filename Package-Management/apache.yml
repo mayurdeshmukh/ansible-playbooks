@@ -1,0 +1,21 @@
+---
+- name: This playbook is used to install the webserver
+  hosts: all
+  become: yes
+  remote_user: root
+  gather_facts: yes
+
+# Installation of Apache 
+
+  tasks:
+  - name: install package
+    yum:
+      name: httpd
+      state: latest
+
+# Below module restart httpd service and enable it
+  - name: Restart Service
+    service: 
+      name: httpd
+      state: restarted
+      enabled: true
