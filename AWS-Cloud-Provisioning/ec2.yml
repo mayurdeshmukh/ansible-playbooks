@@ -1,0 +1,58 @@
+---
+  - name: Launch ec2 instance on AWS
+    hosts: localhost
+    vars:
+       access_key: your access key
+       secret_key: your secret key
+
+    tasks:
+    - pip:
+        name: 
+        - boto 
+        - botocore
+        - boto3
+
+    - name: launch ec2
+      ec2:
+  
+       key_name: Mayur_jenkins
+       region: ap-south-1
+       instance_type: t2.micro
+       vpc_subnet_id: subnet-7e74b432
+       wait: yes
+       assign_public_ip: yes
+       image: ami-040c7ad0a93be494e
+       group: CentOS 7 -x86_64- - with Updates HVM-1901_01-AutogenByAWSMP-
+       access_key: your access key
+       secret_key: your secret key
+       count: 1
+      register: ec2
+
+    - name: Add tag to Instance(s)
+      ec2_tag:
+       access_key: your access key
+       secret_key: your secret key
+        resource: "{{ item.id }}"
+        region: ap-south-1
+        state: "present"
+      with_items: "{{ ec2.instances }}"
+      args:
+        tags:
+          Type: Jboss Server
+
+    - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+      local_action: lineinfile 
+                    dest="/etc/ansible/hosts" 
+                    regexp={{ item.public_ip }} 
+                    insertafter="[aws]" line={{ item.public_ip }}
+      with_items: "{{ ec2.instances }}"
+    
+    - name: Refresh inventory to ensure new instaces exist in inventory
+      meta: refresh_inventory
+   
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22 
+        state: started 
+      with_items: "{{ ec2.instances }}"
