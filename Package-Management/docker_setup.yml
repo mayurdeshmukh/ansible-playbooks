@@ -26,4 +26,9 @@
 
     - name: setting permissions on docker compose
       shell: chmod +x /usr/local/bin/docker-compose
+      
+    - name: Install docker-py
+      pip:
+        name: docker-py
+
 
