@@ -10,7 +10,7 @@
     - name: Install Docker package
       shell:  dnf -y  install docker-ce --nobest
 
-    - name: Enable service httpd, and not touch the state
+    - name: Enable and restart service docker
       service:
        name: docker
        state: restarted
