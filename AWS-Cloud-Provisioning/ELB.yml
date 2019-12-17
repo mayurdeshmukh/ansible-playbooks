@@ -1,0 +1,21 @@
+---
+  - name: Create ELB on AWS
+    hosts: localhost
+    tasks:
+
+    - name: By using ec2_elb_lb module
+      ec2_elb_lb:
+         name: "test-load-balancer"
+         region: ap-south-1
+         access_key: 
+         secret_key: 
+         state: present
+         zones:
+          - ap-south-1a
+          - ap-south-1b
+         listeners:
+          - protocol: http
+            load_balancer_port: 80
+            instance_port: 80
+            proxy_protocol: True
+
