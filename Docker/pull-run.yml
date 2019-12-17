@@ -1,0 +1,22 @@
+---
+  - name: Pull docker image from the repo
+    hosts: test
+    tasks:
+
+    - name: pull an image
+      docker_image:
+        name: nginx
+        source: pull
+
+    - name: Creates directory on remote server
+      file:
+       path: /opt/data
+       state: directory
+
+    - name: Create a data container
+      docker_container:
+          name: data
+          image: centos
+          command: ["sleep", "infinity"]
+          volumes:
+          - /opt/data
