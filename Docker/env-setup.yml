@@ -1,0 +1,41 @@
+--
+  - name: Playbook for Docker Environment including Docker Compose
+    hosts: test
+    become: yes
+    tasks:
+
+    - name: add docker repo
+      shell:  dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install Docker package
+      shell:  dnf -y  install docker-ce --nobest
+
+    - name: Enable and restart service docker
+      service:
+       name: docker
+       state: restarted
+       enabled: yes
+
+    - name: Installation of curl to get Docker Compose 
+      yum:
+        name: curl
+        state: latest
+
+    - name: Getting docker compose from the repo
+      shell: curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+
+    - name: move docker compose 
+      shell: mv docker-compose /usr/local/bin/ 
+
+    - name: setting permissions on docker compose
+      shell: chmod +x /usr/local/bin/docker-compose
+
+    - name: Installation of curl to get Docker Compose
+      yum:
+        name: python3-pip
+        state: latest
+
+    - name: Install docker-py
+      pip:
+        name: docker-py
+   
