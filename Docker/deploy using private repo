@@ -1,0 +1,92 @@
+---
+  - name: Playbook for Docker Environment including Docker Compose
+    hosts: test
+    become: yes
+    tasks:
+
+    - name: add docker repo
+      shell:  dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install Docker package
+      shell:  dnf -y  install docker-ce --nobest
+
+    - name: Enable and restart service docker
+      service:
+       name: docker
+       state: restarted
+       enabled: yes
+
+    - name: Installation of curl to get Docker Compose 
+      yum:
+        name: curl
+        state: latest
+
+    - name: Getting docker compose from the repo
+      shell: curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+
+    - name: move docker compose 
+      shell: mv docker-compose /usr/local/bin/ 
+
+    - name: setting permissions on docker compose
+      shell: chmod +x /usr/local/bin/docker-compose
+
+    - name: Installation of curl to get Docker Compose
+      yum:
+        name: python3-pip
+        state: latest
+
+    - name: Install docker-py
+      pip:
+        name: docker-py
+   
+    - name: Create a network
+      docker_network:
+        name: production
+
+    - name: pull an image from docker hub
+      docker_image:
+        name: tomcat
+        source: pull
+    
+    - name: Copy Dockerfile on the remote machine 
+      copy:
+         src: /root/Dockerfile
+         dest: /root/Dockerfile
+
+    - name: Copy Dockerfile on the remote machine
+      copy:
+         src: /var/lib/jenkins/workspace/Deploy/target/spring-hello-world-1.0.war
+         dest: /root/
+
+        
+    - name: Build Docker image from Dockerfile
+      docker_image:
+         build:
+           path: /root
+         name: tomcat_new
+         source: build
+         tag: v1
+
+    - name: Running the container from image build by docker file
+      docker_container:
+          image: tomcat_new:v1
+          name: tomcat_new
+          state: started
+          published_ports:
+            - "8080:8080"
+
+          networks:
+            - name: production
+---
+  - name: This playbook will create private docker repo
+    hosts: localhost
+    tasks:
+
+    - name: launching registry container for private repo
+      shell: docker run -d -p 5000:5000 --restart=always --name registry registry
+
+    - name: tagging custom image to private repo
+      shell: docker tag hello-world localhost:5000/image-name
+
+    - name: pushing custom image to private repo
+      shell: docker push localhost:5000/image-name
