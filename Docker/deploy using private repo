@@ -39,54 +39,55 @@
       pip:
         name: docker-py
    
+
+    - name: copy artifact to directory
+      shell: cp /var/lib/jenkins/workspace/Deploy/target/spring-hello-world-1.0.war /root
+      delegate_to: 127.0.0.1
+      
     - name: Create a network
       docker_network:
         name: production
+
+    - name: launching registry container for private repo
+      shell: docker run -d -p 5000:5000 --restart=always --name registry registry
+      delegate_to: 127.0.0.1
 
     - name: pull an image from docker hub
       docker_image:
         name: tomcat
         source: pull
-    
-    - name: Copy Dockerfile on the remote machine 
-      copy:
-         src: /root/Dockerfile
-         dest: /root/Dockerfile
-
-    - name: Copy Dockerfile on the remote machine
-      copy:
-         src: /var/lib/jenkins/workspace/Deploy/target/spring-hello-world-1.0.war
-         dest: /root/
-
         
     - name: Build Docker image from Dockerfile
       docker_image:
          build:
-           path: /root
-         name: tomcat_new
+           path: .
+         name: app_build1
          source: build
-         tag: v1
+         tag: latest
+      delegate_to: 127.0.0.1
+      tags: build
+
+    - name: tagging custom image to private repo
+      shell: docker tag app_build1 52.66.213.230:5000/app_build1
+      delegate_to: 127.0.0.1
+    
+    - name: pushing custom image to private repo
+      shell: docker push 52.66.213.230:5000/app_build1
+      delegate_to: 127.0.0.1
+    
+    - name: pull image from private repo
+      shell: docker pull 52.66.213.230:5000/app_build1
 
     - name: Running the container from image build by docker file
       docker_container:
-          image: tomcat_new:v1
-          name: tomcat_new
+          image: 52.66.213.230:5000/app_build1:latest
+          name: app_build1
           state: started
           published_ports:
             - "8080:8080"
 
           networks:
             - name: production
----
-  - name: This playbook will create private docker repo
-    hosts: localhost
-    tasks:
 
-    - name: launching registry container for private repo
-      shell: docker run -d -p 5000:5000 --restart=always --name registry registry
 
-    - name: tagging custom image to private repo
-      shell: docker tag hello-world localhost:5000/image-name
-
-    - name: pushing custom image to private repo
-      shell: docker push localhost:5000/image-name
+      tags: last
