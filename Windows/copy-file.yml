@@ -1,0 +1,24 @@
+# file: playbook-install-firefox.yml
+---
+ - name: Copy Artifacts using Ansible
+   hosts: win
+   tasks:
+   - name: Compress directory
+     archive:
+        path: /home/mayur/test
+        dest: /home/mayur/test.zip
+        format: zip
+     delegate_to: 127.0.0.1
+
+
+   - name: Copy a  file
+     win_copy:
+       src: /home/mayur/test.zip
+       dest: C:\Users\mayur\Desktop\test.zip
+       backup: yes
+
+   - name: Unzip a file
+     win_unzip:
+         src: C:\Users\mayur\Desktop\test.zip
+         dest: C:\Users\mayur\Desktop\
+         creates: C:\Users\mayur\Desktop\OldLog
