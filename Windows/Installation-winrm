@@ -1,0 +1,45 @@
+---------Verify that Python3 is installed on Ansible control node------------
+sudo dnf install python3
+sudo alternatives --set python /usr/bin/python3
+python --version
+ 
+---------Install Ansible
+yum install ansible
+ansible --version
+
+
+---------Install Pywinrm
+pip3 install pywinrm
+
+
+---------Download the WinRM script on Windows  host
+using this link download the script
+https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1
+
+---------and run the script on windows server
+.\ConfigureRemotingForAnsible.ps1
+
+
+---------open the default hosts file
+
+# vim /etc/ansible/hosts
+vim /etc/ansible/hosts
+[win]
+52.247.xxxx
+
+[win:vars]
+ansible_user=mayur 
+ansible_password=mayur
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+#ansible_port= 5985
+
+----------Connecting to Windows Host from Ansible Control Node
+ansible winhost -m win_ping
+
+
+
+
+
+
+ 
