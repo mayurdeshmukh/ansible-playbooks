@@ -1,0 +1,32 @@
+---------------Setting up the Environment
+Task 1: Create an Azure service principal with Azure CLI
+
+Ansible includes a suite of modules for interacting with Azure Resource Manager, 
+giving you the tools to easily create and orchestrate infrastructure on the Microsoft Azure Cloud. 
+Using the Azure Resource Manager modules requires authenticating with the Azure API. For this we need Azure service principal for authentication.
+
+1. Click Cloud Shell and select Bash.
+2. Enter the following command to create service principle
+az ad sp create-for-rbac --name ServicePrincipalName
+
+save the output details
+
+3. Now get subscription id by using
+az account show
+
+4. Now we must create a directory named .azure in the home directory and a credentials file under it. 
+mkdir ~/.azure
+
+nano ~/.azure/credentials
+
+5. Insert the following lines into the credentials file.
+
+[default]
+
+subscription_id=<your-Azure-subscription_id>
+
+client_id=<azure service-principal-appid>
+
+secret=<azure service-principal-password>
+
+tenant=<azure serviceprincipal-tenant>
