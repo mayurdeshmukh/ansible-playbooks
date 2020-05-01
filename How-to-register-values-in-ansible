@@ -1,0 +1,50 @@
+This is an example to show how to register values in ansible
+
+
+    "state": { <------------------------
+        "dns_servers": [],
+        "dns_settings": {
+            "applied_dns_servers": [],
+            "dns_servers": [],
+            "internal_dns_name_label": null,
+            "internal_fqdn": null
+        },
+        "enable_accelerated_networking": false,
+        "enable_ip_forwarding": false,
+        "etag": "W/\"1a65eed2-6880-47e0-b4b6-55e6e2239074\"",
+        "id": "/subscriptions/cf9d36db-317b-4eff-afb3-6a2c5ef78283/resourceGroups/pocendtoend/providers/Microsoft.Network/networkInterfaces/worker",
+        "ip_configuration": { <----------------------------
+            "application_security_groups": null,
+            "load_balancer_backend_address_pools": null,
+            "name": "default",
+            "primary": true,
+            "private_ip_address": "10.0.1.5", <--------------------------- query will be {dns.state.ip_configuration.private_ip_address}
+            "private_ip_allocation_method": "Dynamic",
+             
+              - name: Adding DNS name
+               local_action: lineinfile
+               dest="/home/cloud_user/ansible/Azure_Poc/playbooks/env_variables"
+               regexp={{ dns.state.ip_configuration.private_ip_address }}
+               insertafter="check" line=worker:\t{{dns.state.ip_configuration.private_ip_address}}
+            
+            
+            
+            where dns is varible in which i have registered the ansible result
+            
+            
+            
+            
+            
+            
+            
+            "public_ip_address": {
+                "id": "/subscriptions/cf9d36db-317b-4eff-afb3-6a2c5ef78283/resourceGroups/pocendtoend/providers/Microsoft.Network/publicIPAddresses/worker",
+                "name": "worker",
+                "public_ip_allocation_method": null
+            },
+            "subnet": {
+                "id": "/subscriptions/cf9d36db-317b-4eff-afb3-6a2c5ef78283/resourceGroups/pocendtoend/providers/Microsoft.Network/virtualNetworks/vnetforpoc/subnets/master",
+                "name": "master",
+                "resource_group": "pocendtoend",
+                "virtual_network_name": "vnetforpoc"
+            }
