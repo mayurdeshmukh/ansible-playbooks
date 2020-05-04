@@ -1,0 +1,77 @@
+# Description
+# # ===========
+# # This playbook create an Azure VM with public IP, and open 22 port for SSH
+- name: Create Azure VM
+  hosts: localhost
+  connection: local
+  vars_files:
+    - env_variable
+  tasks:
+  - name: Create a resource group
+    azure_rm_resourcegroup:
+      name: "{{ resource_group }}"
+      location: "{{ location }}"
+  - name: Create virtual network
+    azure_rm_virtualnetwork:
+      resource_group: "{{ resource_group }}"
+      name: "{{ virtual_network }}"
+      address_prefixes: "10.0.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: "{{ resource_group }}"
+      name: "{{ master_vm_name }}"
+      address_prefix: "10.0.1.0/24"
+      virtual_network: "{{ virtual_network }}"
+  - name: Create public IP address
+    azure_rm_publicipaddress:
+      resource_group: "{{ resource_group }}"
+      allocation_method: Static
+      name: "{{ master_vm_name }}"
+    register: result
+
+#  - name: Entering value of IP address
+#    shell: echo {{result}} | cut -f 11 -d ':' | cut -f 1 -d "," >> ip.txt
+  - name: Add the newly created instance
+    local_action: lineinfile
+                  dest="/home/cloud_user/ansible/Azure_Poc/hosts"
+                  regexp={{ result.state.ip_address  }}
+                  insertbefore="[worker]" line={{ result.state.ip_address }}
+   # with_items:
+    #   - ip
+    tags: test
+
+  - name: Create Network Security Group that allows SSH
+    azure_rm_securitygroup:
+      resource_group: "{{ resource_group }}"
+      name: "{{ master_vm_name }}"
+      rules:
+        - name: All
+          protocol: Tcp
+          destination_port_range: "*"
+          access: Allow
+          priority: 1001
+          direction: Inbound
+  - name: Create virtual network inteface card
+    azure_rm_networkinterface:
+      resource_group: "{{ resource_group }}"
+      name: "{{ master_vm_name }}"
+      virtual_network: "{{ virtual_network }}"
+      subnet: "{{ master_vm_name }}"
+      public_ip_name: "{{ master_vm_name }}"
+      security_group: "{{ master_vm_name }}"
+  - name: Create VM
+    azure_rm_virtualmachine:
+      resource_group: "{{ resource_group }}"
+      name: "{{ master_vm_name }}"
+      vm_size: Standard_D2s_v3
+      admin_username: serosoft
+      admin_password: serosoft@123
+      network_interfaces: "{{ master_vm_name }}"
+      image:
+        publisher: OpenLogic
+        sku: 7.5
+        version: latest
+        offer: CentOS
+    register: vm
+    tags: test
+
