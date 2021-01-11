@@ -1,0 +1,14 @@
+---
+  - hosts: zap
+    remote_user: ubuntu
+    become: yes
+    become_method: sudo
+    tasks:
+    - name: Download Helm from remote source
+      get_url:
+        url: https://github.com/zaproxy/zaproxy/releases/download/v2.10.0/ZAP_2.10.0_Linux.tar.gz
+        dest: /opt
+        #/var/lib/jenkins/workspace/
+        
+    - name: Extract the package
+      shell: tar xfz /opt/ZAP_2.10.0_Linux.tar.gz  -C /opt/
