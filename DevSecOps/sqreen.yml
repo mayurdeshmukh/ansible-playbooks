@@ -1,0 +1,22 @@
+
+---
+- hosts: all
+  #  remote_user: centos
+  become: yes
+  become_method: sudo
+  tasks:
+
+  - name: Download the sqreen agent
+    shell: curl 'https://download.sqreen.com/java/sqreen.jar' -o /opt/sqreen.jar
+
+  - name: Exporting env variables for sqreen (token)
+    shell:  export SQREEN_TOKEN=""
+
+  - name: Exporting env variables for sqreen (App Name)
+    shell:  export SQREEN_APP_NAME=""
+
+  - name: Exporting env variables for sqreen (Sqreen Agent Path)
+    shell:  export JAVA_OPTS="${JAVA_OPTS} -javaagent:/opt/sqreen.jar"
+
+
+
