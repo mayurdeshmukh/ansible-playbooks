@@ -4,11 +4,11 @@
     become: yes
     tasks:
     
-    - name: Install apache httpd  (state=present is optional)
+    - name: Install pip on the machine
       apt:
         name: pip3
         state: latest
         
-    - name: Install docker-py
+    - name: Install ansible-lint
       pip:
         name: ansible-lint
