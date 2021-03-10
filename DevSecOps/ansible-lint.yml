@@ -1,0 +1,14 @@
+---
+  - name: Playbook for installation of ansible lint
+    hosts: test
+    become: yes
+    tasks:
+    
+    - name: Install apache httpd  (state=present is optional)
+      apt:
+        name: pip3
+        state: latest
+        
+    - name: Install docker-py
+      pip:
+        name: ansible-lint
