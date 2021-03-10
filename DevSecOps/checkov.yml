@@ -1,0 +1,14 @@
+---
+  - name: Playbook for installation of checkov 
+    hosts: test
+    become: yes
+    tasks:
+    
+    - name: Install pip on the machine
+      apt:
+        name: pip3
+        state: latest
+        
+    - name: Install checkov tool
+      pip:
+        name: pip install checkov
