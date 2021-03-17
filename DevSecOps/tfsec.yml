@@ -1,0 +1,14 @@
+---
+  - name: Playbook for installation of Tfsec
+    hosts: test
+    become: yes
+    tasks:
+    
+    - name: Download tfsec binary
+      shell: wget https://github.com/tfsec/tfsec/releases/download/v0.39.8/tfsec-linux-amd64
+        
+    - name: Install checkov tool
+      shell: mv tfsec-linux-amd64 /usr/bin/tfsec
+      
+    - name: Assign permission to tfsec binary
+      shell: chmod +x /usr/bin/tfsec
