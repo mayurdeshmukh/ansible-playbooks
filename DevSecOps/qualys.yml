@@ -1,0 +1,16 @@
+---
+  - name: Playbook for installation of  qualys agent on ubuntu
+    hosts: test
+    become: yes
+    vars_files:
+     - env_variables
+    tasks:
+    
+  - name: Download Git Secrets package
+    get_url:
+        url: {{qualys_url}}
+        dest: /opt
+        mode: '0755'
+        
+  - name: Go to the folder and execute command
+    command: chdir=/opt/ dpkg --install qualys-cloud-agent.x86_64.deb ActivationId={{qualys_ActivationID}} CustomerId={{qualys_CustomerID}}
